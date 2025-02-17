@@ -1,0 +1,49 @@
+hazelcast:
+  cluster-name: external-dev
+  advanced-network:
+    enabled: true
+    join:
+      kubernetes:
+        enabled: true
+        service-port: 5702
+        #namespace: my-namespace
+        #service-name: my-service-name
+    wan-server-socket-endpoint-config:
+      tokyo:
+        port:
+          auto-increment: false
+          port: 5710
+        ssl:
+          enabled: true
+          factory-class-name: com.hazelcast.nio.ssl.BasicSSLContextFactory
+          properties:
+            keyStore: /data/secrets/hazelcast-keystore.p12
+            keyStorePassword: hazelcast
+            keyStoreType: PKCS12
+            trustStore: /data/secrets/hazelcast-truststore.p12
+            trustStorePassword: changeit
+            trustStoreType: PKCS12
+            protocol: TLSv1.2
+            mutualAuthentication: NONE
+    member-server-socket-endpoint-config:
+      port:
+        port: 5702
+      ssl:
+        enabled: false
+    client-server-socket-endpoint-config:
+      port:
+        port: 5701
+      ssl:
+        enabled: false
+    rest-server-socket-endpoint-config:
+      port:
+        port: 5703
+      endpoint-groups:
+        HEALTH_CHECK:
+          enabled: true
+  security:
+    enabled: false
+  # For High Availability
+  partition-group:
+    enabled: true
+    group-type: ZONE_AWARE
