@@ -1,5 +1,8 @@
 Original reference https://docs.hazelcast.com/tutorials/kubernetes-embedded
 
+## Build the jar
+mvn clean install
+
 ## Create Dockerfile
 Remember to pass $JAVA_OPTS
 
@@ -15,18 +18,25 @@ ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
 ## Create Docker image
 docker build -t tpham/hazelcast-embedded-kubernetes .
 
-## K8S Deploy
+## Deploy Hazelcast Cluster
+```
+export WORK_DIR=$(pwd)
+export HAZELCAST_LICENSE_KEY=<HAZELCAST_LICENSE_KEY>
+kubectl config set-context --current --namespace <namespace>
+```
 
 Create hz-license-key secret
 
-`kubectl create secret generic hz-license-key --from-literal key=<HAZELCAST_LICENSE_KEY>`
+`kubectl create secret generic hz-license-key --from-literal key=$HAZELCAST_LICENSE_KEY`
 
 Create TLS secret
 ```
 kubectl create secret generic hz-certificates \
-  --from-file=hazelcast-keystore.p12=./certs/keystore.p12 \
-  --from-file=hazelcast-truststore.p12=./certs/truststore.p12
+  --from-file=hazelcast-keystore.p12=$WORK_DIR/deploy_k8s/certs/keystore.p12 \
+  --from-file=hazelcast-truststore.p12=$WORK_DIR/deploy_k8s/certs/truststore.p12
 ```
+
+`cd $WORK_DIR/deploy_k8s`
 
 Create hz-config configuration map from hazelcast.yaml
 
@@ -34,13 +44,12 @@ Create hz-config configuration map from hazelcast.yaml
 
 Deploy
 
-```kubectl apply -f https://raw.githubusercontent.com/hazelcast/hazelcast/master/kubernetes-rbac.yaml```
+`kubectl apply -f rbac.yaml`
 
-```kubectl apply -f statefulset.yaml```
+`kubectl apply -f statefulset.yaml`
 
-# If you need to expose the app
-kubectl create service clusterip my-app --tcp=8080:8080
-kubectl port-forward service/my-app 8080:8080
+To expose WAN service,
+`kuebctl apply -f service.yaml`
 
 Validate deployment - sample output
 ```
@@ -88,7 +97,12 @@ Certificate chain
    a:PKEY: rsaEncryption, 2048 (bit); sigalg: RSA-SHA256
    v:NotBefore: Jul 26 06:33:00 2024 GMT; NotAfter: Jul 25 06:33:00 2029 GMT
 ---
+```
 
+## If you need to expose the app
+```
+kubectl create service clusterip my-app --tcp=8080:8080
+kubectl port-forward service/my-app 8080:8080
 ```
 
 Testing
@@ -98,3 +112,29 @@ $ curl --data "key=key1&value=hazelcast" "localhost:8080/put"
 $ curl "localhost:8080/get?key=key1"
 {"value":"hazelcast"}
 ```
+
+## Deploy Management Center
+
+`cd $WORK_DIR/deploy_k8s`
+
+hz-mancenter-admin-credentials stores Admin credentails for MC console login using Local Security Provider 
+
+hz-mancenter-secrets contains TLS credentials 
+
+```
+kubectl create secret generic hz-license-key --from-literal key=$HAZELCAST_LICENSE_KEY
+kubectl create cm hz-mancenter-config --from-file=hazelcast-client.yaml=mancenter-hazelcast-client.yaml
+kubectl create secret generic hz-mancenter-admin-credentials --from-literal username=admin  --from-literal password=p@ssw0rd 
+kubectl create secret generic hz-mancenter-secrets \
+  --from-file=keystore.p12=$WORK_DIR/deploy_k8s/certs/keystore.p12 \
+  --from-literal keystore_password=hazelcast \
+  --from-file=truststore.p12=$WORK_DIR/deploy_k8s/certs/truststore.p12 \
+  --from-literal truststore_password=changeit 
+
+kubectl apply -f mancenter-statefulset.yaml
+```
+
+To access MC, port forward and access via web browser, login using username/password configured above.
+`kubectl port-forward managementcenter-0 8443:8443`
+
+Setup connection to Hazelcast clusters

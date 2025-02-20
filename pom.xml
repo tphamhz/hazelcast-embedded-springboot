@@ -56,7 +56,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!-- Tracy add for enterprise -->
+        <!-- add for enterprise -->
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-enterprise</artifactId>
@@ -68,13 +68,19 @@
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-spring</artifactId>
             <version>${hazelcast.version}</version>
-            <!-- Tracy add to exclude hazelcast and use the hazelcast enterprise above -->
+            <!-- exclude hazelcast and use the hazelcast enterprise above -->
             <exclusions>
                 <exclusion>
                     <groupId>com.hazelcast</groupId>
                     <artifactId>hazelcast</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+            <!--required to use SQL -->
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-sql</artifactId>
+            <version>${hazelcast.version}</version>
         </dependency>
         <!-- end::hazelcast-dep[] -->
 

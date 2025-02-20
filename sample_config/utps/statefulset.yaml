@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: my-app
+  name: utps-app
   labels:
-    app: my-app
-    app.kubernetes.io/instance: my-release-hazelcast
+    app: utps-app
+    app.kubernetes.io/instance: utps-release-hazelcast
     role: hazelcast
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
-      app: my-app
-      app.kubernetes.io/instance: my-release-hazelcast
+      app: utps-app
+      app.kubernetes.io/instance: utps-release-hazelcast
       role: hazelcast
   template:
     metadata:
       labels:
-        app: my-app
-        app.kubernetes.io/instance: my-release-hazelcast
+        app: utps-app
+        app.kubernetes.io/instance: utps-release-hazelcast
         role: hazelcast
     spec:
       topologySpreadConstraints:
@@ -26,10 +26,11 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              "app.kubernetes.io/instance": my-release-hazelcast
+              "app.kubernetes.io/instance": utps-release-hazelcast
       terminationGracePeriodSeconds: 600
+      serviceAccountName: utps-sa
       containers:
-        - name: my-app-container
+        - name: utps-app-container
           image: tpham/hazelcast-embedded-kubernetes:latest
           imagePullPolicy: IfNotPresent
           volumeMounts:
@@ -61,7 +62,7 @@ spec:
     - metadata:
         name: hz-persistence-volume
         labels:
-          app.kubernetes.io/instance: my-release-hazelcast
+          app.kubernetes.io/instance: utps-release-hazelcast
       spec:
         accessModes: ["ReadWriteOnce"]
         #storageClassName: "<to-update>"

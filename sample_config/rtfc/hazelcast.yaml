@@ -1,5 +1,5 @@
 hazelcast:
-  cluster-name: external-dev
+  cluster-name: rtfc-dev
   advanced-network:
     enabled: true
     join:
@@ -8,8 +8,9 @@ hazelcast:
         service-port: 5702
         #namespace: my-namespace
         #service-name: my-service-name
+    # expose WAN endpoint on 5710 for WAN clients to write to
     wan-server-socket-endpoint-config:
-      tokyo:
+      rtfc:
         port:
           auto-increment: false
           port: 5710

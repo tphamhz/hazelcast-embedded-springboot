@@ -1,0 +1,136 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: managementcenter
+  labels:
+    app.kubernetes.io/name: mancenter
+spec:
+  serviceName: mancenter-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mancenter
+      app.kubernetes.io/instance: mancenter-my-release
+      role: mancenter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mancenter
+        app.kubernetes.io/instance: mancenter-my-release
+        role: mancenter
+    spec:
+      #nodeSelector:
+      hostNetwork: false
+      hostPID: false
+      hostIPC: false
+      #affinity:
+      #tolerations:
+      #topologySpreadConstraints:
+      containers:
+      - name: hazelcast-mancenter
+        image: hazelcast/management-center:5.6.0
+        imagePullPolicy: IfNotPresent
+        #resources:
+        ports:
+        - name: mancenter
+          containerPort: 8080 #or 8443 if ssl is enabled
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8081
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            #port: 8080 #or 8443 if ssl is enabled
+            port: 8443
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        volumeMounts:
+        - name: config
+          mountPath: /config/hazelcast-client.yaml
+          subPath: hazelcast-client.yaml
+        - name: mancenter-storage
+          mountPath: /data
+          #subPath: {{ .Values.mancenter.persistence.subPath }}
+          #subPathExpr: {{ .Values.mancenter.persistence.subPathExpr }}
+        - name: mancenter-secrets
+          mountPath: /secrets
+        env:
+        - name: LOGGING_LEVEL
+          value: INFO
+        - name: MC_ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              name: hz-mancenter-admin-credentials
+              key: username
+        - name: MC_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hz-mancenter-admin-credentials
+              key: password
+        - name: MC_CONTEXT_PATH
+          value: ""
+        - name: MC_LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: hz-license-key
+              key: key
+        - name: MC_INIT_CMD
+          value: "./bin/hz-mc conf security reset; ./bin/hz-mc conf user create -n $(MC_ADMIN_USER) -r admin -p $(MC_ADMIN_PASSWORD); "
+        - name: TLS_KEYSTORE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hz-mancenter-secrets
+              key: keystore_password
+        - name: TLS_TRUSTSTORE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hz-mancenter-secrets
+              key: truststore_password
+        - name: JAVA_OPTS
+          #value: "-Dhazelcast.mc.license=$(MC_LICENSE_KEY) -Dhazelcast.mc.healthCheck.enable=true  -Dhazelcast.mc.tls.enabled=false"
+          value: "-Dhazelcast.mc.license=$(MC_LICENSE_KEY) -Dhazelcast.mc.healthCheck.enable=true  -Dhazelcast.mc.tls.enabled=true -Dhazelcast.mc.tls.keyStore=/secrets/keystore.p12 -Dhazelcast.mc.tls.keyStorePassword=$(TLS_KEYSTORE_PASSWORD) -Dhazelcast.mc.tls.trustStore=/secrets/truststore.p12 -Dhazelcast.mc.tls.trustStorePassword=$(TLS_TRUSTSTORE_PASSWORD)"
+        # securityContext:
+        #   runAsNonRoot: true
+        #   runAsUser: 65534
+        #   runAsGroup: 65534
+        #   privileged: false
+        #   readOnlyRootFilesystem: false
+        #   allowPrivilegeEscalation: false
+        #   capabilities:
+        #     drop:
+        #     - ALL
+        # Local hack to fix minikube file permission using runAsUser: 0 and fsGroup: 0
+        # Directories provisioned by hostPath provisioner are only writable by root!!
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+      #serviceAccountName:
+      volumes:
+        - name: config
+          configMap:
+            name: hz-mancenter-config
+        - name: mancenter-secrets
+          secret:
+            secretName: hz-mancenter-secrets
+  volumeClaimTemplates:
+  - metadata:
+      name: mancenter-storage
+      labels:
+        app.kubernetes.io/name: mancenter
+        app.kubernetes.io/instance: mancenter-my-release
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      #storageClassName: "<to-update>"
+      resources:
+        requests:
+          storage: 8Gi
