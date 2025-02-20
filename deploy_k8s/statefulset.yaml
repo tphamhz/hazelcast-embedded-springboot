@@ -44,7 +44,7 @@ spec:
             - name: JMX_OPTS
               value: "-Xms512Mi -Xmx512Mi -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/hazelcast/jvm -XX:ErrorFile=/var/log/hazelcast/jvm/hs_err_pid%p.log -Xlog:gc*,gc+age=trace,safepoint:file=/var/log/hazelcast/jvm/gc.log:utctime,pid,tags:filecount=32,filesize=64m"
             - name: JAVA_OPTIONS
-              value: "$(JMX_OPTS) -Dhazelcast.config=/app/hazelcast.yaml"
+              value: "$(JMX_OPTS) -Dhazelcast.shutdownhook.policy=GRACEFUL -Dhazelcast.shutdownhook.enabled=true  -Dhazelcast.graceful.shutdown.max.wait=600 -Dhazelcast.cluster.version.auto.upgrade.enabled=true -Dhazelcast.config=/app/hazelcast.yaml "
             - name: HZ_LICENSEKEY
               valueFrom:
                 secretKeyRef:
