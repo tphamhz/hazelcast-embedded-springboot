@@ -14,3 +14,7 @@ spec:
     protocol: TCP
     port: 5710    # Service port
     targetPort: 5710 # Container port
+  - name: hazelcast-client
+    protocol: TCP
+    port: 5701    # Service port
+    targetPort: 5701 # Container port
