@@ -3,7 +3,10 @@ kind: Service
 metadata:
   name: mancenter-service
   labels:
-   app.kubernetes.io/instance: mancenter-my-release
+    app.kubernetes.io/instance: mancenter-my-release
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
 spec:
   type: LoadBalancer
   selector:
