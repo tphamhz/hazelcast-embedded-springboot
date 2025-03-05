@@ -1,22 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: rtfc-app-service
+  name: pdcs-app-service
   labels:
-    app.kubernetes.io/instance: rtfc-release-hazelcast
+    app.kubernetes.io/instance: pdcs-release-hazelcast
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
 spec:
   type: LoadBalancer
   selector:
-    app.kubernetes.io/instance: rtfc-release-hazelcast
+    app.kubernetes.io/instance: pdcs-release-hazelcast
     role: hazelcast
   ports:
-  - name: hazelcast-wan
-    protocol: TCP
-    port: 5710    # Service port
-    targetPort: 5710 # Container port
   - name: hazelcast-client
     protocol: TCP
     port: 5701    # Service port

@@ -20,19 +20,46 @@ spec:
         app.kubernetes.io/instance: rtfc-release-hazelcast
         role: hazelcast
     spec:
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: topology.kubernetes.io/zone
-          whenUnsatisfiable: ScheduleAnyway
-          labelSelector:
-            matchLabels:
-              "app.kubernetes.io/instance": rtfc-release-hazelcast
+      # topologySpreadConstraints:
+      #   - maxSkew: 1
+      #     topologyKey: topology.kubernetes.io/zone
+      #     whenUnsatisfiable: ScheduleAnyway
+      #     labelSelector:
+      #       matchLabels:
+      #         "app.kubernetes.io/instance": rtfc-release-hazelcast
       terminationGracePeriodSeconds: 600
       serviceAccountName: rtfc-sa
       containers:
         - name: rtfc-app-container
-          image: tpham/hazelcast-embedded-kubernetes:latest
-          imagePullPolicy: IfNotPresent
+          image: wsonelab/hazelcast-embedded-kubernetes:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 1024Mi
+              cpu: 200m
+          livenessProbe:
+            httpGet:
+              path:  /hazelcast/health/node-state
+              port: 5701
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              path: /hazelcast/health/ready
+              port: 5701
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 10
           volumeMounts:
             - name: hz-config-volume
               mountPath: /app/hazelcast.yaml
@@ -45,7 +72,7 @@ spec:
             - name: JMX_OPTS
               value: "-Xms512Mi -Xmx512Mi -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/hazelcast/jvm -XX:ErrorFile=/var/log/hazelcast/jvm/hs_err_pid%p.log -Xlog:gc*,gc+age=trace,safepoint:file=/var/log/hazelcast/jvm/gc.log:utctime,pid,tags:filecount=32,filesize=64m"
             - name: JAVA_OPTIONS
-              value: "$(JMX_OPTS) -Dhazelcast.shutdownhook.policy=GRACEFUL -Dhazelcast.shutdownhook.enabled=true  -Dhazelcast.graceful.shutdown.max.wait=600 -Dhazelcast.cluster.version.auto.upgrade.enabled=true -Dhazelcast.config=/app/hazelcast.yaml "
+              value: "$(JMX_OPTS) -Dhazelcast.shutdownhook.policy=GRACEFUL -Dhazelcast.shutdownhook.enabled=true  -Dhazelcast.graceful.shutdown.max.wait=600 -Dhazelcast.cluster.version.auto.upgrade.enabled=true -Dhazelcast.stale.join.prevention.duration.seconds=5 -Dhazelcast.config=/app/hazelcast.yaml "
             - name: HZ_LICENSEKEY
               valueFrom:
                 secretKeyRef:
@@ -65,7 +92,7 @@ spec:
           app.kubernetes.io/instance: rtfc-release-hazelcast
       spec:
         accessModes: ["ReadWriteOnce"]
-        #storageClassName: "<to-update>"
+        storageClassName: "gp2"
         resources:
           requests:
             storage: 1Gi #<to-update>

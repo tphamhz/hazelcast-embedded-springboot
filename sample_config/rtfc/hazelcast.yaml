@@ -1,5 +1,5 @@
 hazelcast:
-  cluster-name: rtfc-dev
+  cluster-name: RTFC
   advanced-network:
     enabled: true
     join:
@@ -42,6 +42,15 @@ hazelcast:
       endpoint-groups:
         HEALTH_CHECK:
           enabled: true
+        CLUSTER_READ:
+          enabled: true
+  persistence:
+    enabled: true
+    base-dir: /data/persistence # mount point of persistence volume
+    validation-timeout-seconds: 120
+    parallelism: 2
+    cluster-data-recovery-policy: PARTIAL_RECOVERY_MOST_COMPLETE
+    auto-remove-stale-data: true
   security:
     enabled: false
   jet:
@@ -56,3 +65,27 @@ hazelcast:
     hazelcast.diagnostics.directory: /var/log/hazelcast/diagnostic
     hazelcast.logging.type: jdk
     java.util.logging.config.file: /
+  metrics:
+    enabled: true
+    management-center:
+      enabled: true
+      retention-seconds: 15
+    jmx:
+      enabled: true
+    collection-frequency-seconds: 5
+  map:
+    default:
+      backup-count: 2
+      async-backup-count: 0
+      in-memory-format: BINARY
+      near-cache:
+        invalidate-on-change: true
+        in-memory-format: OBJECT
+        cache-local-entries: true
+        eviction:
+          eviction-policy: LRU
+          size: 1000
+          max-size-policy: ENTRY_COUNT
+        time-to-live-seconds: 3600
+      data-persistence::
+        enabled: true

@@ -1,5 +1,5 @@
 hazelcast:
-  cluster-name: UTPS
+  cluster-name: PDCS
   advanced-network:
     enabled: true
     join:
@@ -20,24 +20,17 @@ hazelcast:
             trustStorePassword: changeit
             trustStoreType: PKCS12
             protocol: TLSv1.2
-    # expose WAN endpoint on 5710 for WAN clients to write to
-    wan-server-socket-endpoint-config:
-      utps:
-        port:
-          auto-increment: false
-          port: 5710
+      endpoint-utps:
         ssl:
           enabled: true
           factory-class-name: com.hazelcast.nio.ssl.BasicSSLContextFactory
           properties:
-            keyStore: /data/secrets/hazelcast-keystore.p12
-            keyStorePassword: hazelcast
-            keyStoreType: PKCS12
+            endpoints: utps-app-service.utps.svc.cluster.local:5710  #- to replace with LB IPs
+            #endpoints: utps-ip1:5710,utps-ip2:5710,utps-ip3:5710
             trustStore: /data/secrets/hazelcast-truststore.p12
             trustStorePassword: changeit
             trustStoreType: PKCS12
             protocol: TLSv1.2
-            mutualAuthentication: NONE
     member-server-socket-endpoint-config:
       port:
         port: 5702
@@ -57,12 +50,7 @@ hazelcast:
         CLUSTER_READ:
         enabled: true
   persistence:
-    enabled: true
-    base-dir: /data/persistence # mount point of persistence volume
-    validation-timeout-seconds: 120
-    parallelism: 2
-    cluster-data-recovery-policy: PARTIAL_RECOVERY_MOST_COMPLETE
-    auto-remove-stale-data: true
+    enabled: false
   security:
     enabled: false
   jet:
@@ -88,7 +76,7 @@ hazelcast:
   wan-replication:
     replicate-to-rtfc:
       batch-publisher:
-        myPublisherId:
+        rtfc:
           cluster-name: RTFC
           endpoint: endpoint-rtfc
           target-endpoints: rtfc-app-service.rtfc.svc.cluster.local:5710 #- to replace with LB IPs
@@ -101,59 +89,21 @@ hazelcast:
           max-concurrent-invocations: 10
           discovery-period-seconds: 30
           queue-capacity: 10000
+    replicate-to-utps:
+      batch-publisher:
+        utps:
+          cluster-name: UTPS
+          endpoint: endpoint-utps
+          target-endpoints: utps-app-service.utps.svc.cluster.local:5710 #- to replace with LB IPs
+          #target-endpoints: utps-ip1:5710,utps-ip2:5710,utps-ip3:5710
+          batch-size: 100
+          batch-max-delay-millis: 2000
+          acknowledge-type: ACK_ON_OPERATION_COMPLETE
+          idle-max-park-ns: 1000000
+          idle-min-park-ns: 1000
+          max-concurrent-invocations: 10
+          discovery-period-seconds: 30
+          queue-capacity: 10000
   map:
     default:
-      backup-count: 2
-      async-backup-count: 0
-      in-memory-format: BINARY
-      near-cache:
-        invalidate-on-change: true
-        in-memory-format: OBJECT
-        cache-local-entries: true
-        eviction:
-          eviction-policy: LRU
-          size: 1000
-          max-size-policy: ENTRY_COUNT
-        time-to-live-seconds: 3600
-      data-persistence::
-        enabled: true
-    # *** WAN Replicated Maps (Only These 4) *** 
-    # EMV_USAGE, EMV_USAGE_KEY, CTC_USAGE, CTC_USAGE_KEY
-    EMV_USAGE*:
-      backup-count: 2
-      async-backup-count: 0
-      in-memory-format: BINARY
-      near-cache:
-        invalidate-on-change: true
-        in-memory-format: OBJECT
-        cache-local-entries: true
-        eviction:
-          eviction-policy: LRU
-          size: 1000
-          max-size-policy: ENTRY_COUNT
-        time-to-live-seconds: 3600
-      data-persistence::
-        enabled: true
-      wan-replication-ref:
-        replicate-to-rtfc:
-          merge-policy-class-name: PassThroughMergePolicy
-          republishing-enabled: true
-    CTC_USAGE*:
-      backup-count: 2
-      async-backup-count: 0
-      in-memory-format: BINARY
-      near-cache:
-        invalidate-on-change: true
-        in-memory-format: OBJECT
-        cache-local-entries: true
-        eviction:
-          eviction-policy: LRU
-          size: 1000
-          max-size-policy: ENTRY_COUNT
-        time-to-live-seconds: 3600
-      data-persistence::
-        enabled: true
-      wan-replication-ref:
-        replicate-to-rtfc:
-          merge-policy-class-name: PassThroughMergePolicy
-          republishing-enabled: true
+      in-memory-format: OBJECT
