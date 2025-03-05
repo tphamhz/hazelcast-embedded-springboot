@@ -20,13 +20,13 @@ spec:
         app.kubernetes.io/instance: rtfc-release-hazelcast
         role: hazelcast
     spec:
-      # topologySpreadConstraints:
-      #   - maxSkew: 1
-      #     topologyKey: topology.kubernetes.io/zone
-      #     whenUnsatisfiable: ScheduleAnyway
-      #     labelSelector:
-      #       matchLabels:
-      #         "app.kubernetes.io/instance": rtfc-release-hazelcast
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              "app.kubernetes.io/instance": rtfc-release-hazelcast
       terminationGracePeriodSeconds: 600
       serviceAccountName: rtfc-sa
       containers:
