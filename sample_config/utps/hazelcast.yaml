@@ -151,7 +151,7 @@ hazelcast:
           size: 1000
           max-size-policy: ENTRY_COUNT
         time-to-live-seconds: 3600
-      data-persistence::
+      data-persistence:
         enabled: true
       wan-replication-ref:
         replicate-to-rtfc:
