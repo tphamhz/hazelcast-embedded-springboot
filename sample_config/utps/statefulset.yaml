@@ -33,6 +33,33 @@ spec:
         - name: utps-app-container
           image: tpham/hazelcast-embedded-kubernetes:latest
           imagePullPolicy: IfNotPresent
+          resources: 
+            requests:
+              memory: 256Mi  #<to-update>
+              cpu: 100m  #<to-update>
+            limits:
+              memory: 1024Mi  #<to-update>
+              cpu: 200m  #<to-update>
+          livenessProbe:
+            httpGet:
+              path:  /hazelcast/health/node-state
+              port: 5703
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              path: /hazelcast/health/ready
+              port: 5703
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 10
           volumeMounts:
             - name: hz-config-volume
               mountPath: /app/hazelcast.yaml

@@ -43,7 +43,7 @@ spec:
           livenessProbe:
             httpGet:
               path:  /hazelcast/health/node-state
-              port: 5701
+              port: 5703
               scheme: HTTP
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -53,7 +53,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /hazelcast/health/ready
-              port: 5701
+              port: 5703
               scheme: HTTP
             initialDelaySeconds: 30
             periodSeconds: 10
