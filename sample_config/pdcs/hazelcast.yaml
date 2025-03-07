@@ -3,11 +3,10 @@ hazelcast:
   advanced-network:
     enabled: true
     join:
-      kubernetes:
+      tcp-ip:
         enabled: true
-        service-port: 5702
-        #namespace: my-namespace
-        #service-name: my-service-name
+        member-list:
+          - 127.0.0.1
     wan-endpoint-config:
       endpoint-rtfc:
         ssl:
@@ -16,7 +15,7 @@ hazelcast:
           properties:
             endpoints: rtfc-app-service.rtfc.svc.cluster.local:5710  #- to replace with LB IPs
             #endpoints: rtfc-ip1:5710,rtfc-ip2:5710,rtfc-ip3:5710
-            trustStore: /data/secrets/hazelcast-truststore.p12
+            trustStore: /Users/tracypham/workspace/hazelcast-embedded-springboot/deploy_k8s/certs/truststore.p12
             trustStorePassword: changeit
             trustStoreType: PKCS12
             protocol: TLSv1.2
@@ -27,44 +26,16 @@ hazelcast:
           properties:
             endpoints: utps-app-service.utps.svc.cluster.local:5710  #- to replace with LB IPs
             #endpoints: utps-ip1:5710,utps-ip2:5710,utps-ip3:5710
-            trustStore: /data/secrets/hazelcast-truststore.p12
+            trustStore: /Users/tracypham/workspace/hazelcast-embedded-springboot/deploy_k8s/certs/truststore.p12
             trustStorePassword: changeit
             trustStoreType: PKCS12
             protocol: TLSv1.2
-    member-server-socket-endpoint-config:
-      port:
-        port: 5702
-      ssl:
-        enabled: false
-    client-server-socket-endpoint-config:
-      port:
-        port: 5701
-      ssl:
-        enabled: false
-    rest-server-socket-endpoint-config:
-      port:
-        port: 5703
-      endpoint-groups:
-        HEALTH_CHECK:
-          enabled: true
-        CLUSTER_READ:
-        enabled: true
   persistence:
     enabled: false
   security:
     enabled: false
   jet:
     enabled: true
-  # For High Availability
-  partition-group:
-    enabled: true
-    group-type: ZONE_AWARE
-  properties:
-    hazelcast.diagnostics.enabled: true
-    hazelcast.diagnostics.metric.level: info
-    hazelcast.diagnostics.directory: /var/log/hazelcast/diagnostic
-    hazelcast.logging.type: jdk
-    java.util.logging.config.file: /
   metrics:
     enabled: true
     management-center:
