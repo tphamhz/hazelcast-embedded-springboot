@@ -55,7 +55,7 @@ hazelcast:
         HEALTH_CHECK:
           enabled: true
         CLUSTER_READ:
-        enabled: true
+          enabled: true
   persistence:
     enabled: true
     base-dir: /data/persistence # mount point of persistence volume
@@ -115,7 +115,7 @@ hazelcast:
           size: 1000
           max-size-policy: ENTRY_COUNT
         time-to-live-seconds: 3600
-      data-persistence::
+      data-persistence:
         enabled: true
     # *** WAN Replicated Maps (Only These 4) *** 
     # EMV_USAGE, EMV_USAGE_KEY, CTC_USAGE, CTC_USAGE_KEY
@@ -132,7 +132,7 @@ hazelcast:
           size: 1000
           max-size-policy: ENTRY_COUNT
         time-to-live-seconds: 3600
-      data-persistence::
+      data-persistence:
         enabled: true
       wan-replication-ref:
         replicate-to-rtfc:
