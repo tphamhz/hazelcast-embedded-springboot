@@ -26,6 +26,41 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!-- Add to generate jar for classes in package custom.hazelcast.replacer -->
+             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                  <executions>
+                <!-- Disable default jar -->
+                <!-- <execution>
+                    <id>default-jar</id>
+                    <phase>none</phase>
+                </execution> -->
+                <!-- Custom filtered jar -->
+                <execution>
+                    <id>filtered-jar</id>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>jar</goal>
+                    </goals>
+                    <configuration>
+                        <finalName>hazelcast-replacer</finalName> 
+                        <classifier>filtered</classifier>
+                        <includes>
+                          <include>custom/hazelcast/replacer/**</include>
+                        </includes>
+                        <archive>
+                            <manifest>
+                                <mainClass>custom.hazelcast.replacer.ExecReplacer</mainClass>
+                            </manifest>
+                        </archive>
+                    </configuration>
+                </execution>
+            </executions>
+
+                
+            </plugin>
         </plugins>
     </build>
 
