@@ -1,5 +1,9 @@
 hazelcast:
   cluster-name: RTFC
+  config-replacers:
+    fail-if-value-missing: false
+    replacers:
+      - class-name: custom.hazelcast.replacer.ExecReplacer
   advanced-network:
     enabled: true
     join:
@@ -19,10 +23,12 @@ hazelcast:
           factory-class-name: com.hazelcast.nio.ssl.BasicSSLContextFactory
           properties:
             keyStore: /data/secrets/hazelcast-keystore.p12
-            keyStorePassword: hazelcast
+            #keyStorePassword: hazelcast
+            keyStorePassword: $EXEC{cat /data/secrets/hazelcast-keystore-pwd}
             keyStoreType: PKCS12
             trustStore: /data/secrets/hazelcast-truststore.p12
-            trustStorePassword: changeit
+            #trustStorePassword: changeit
+            trustStorePassword:  $EXEC{cat /data/secrets/hazelcast-truststore-pwd}
             trustStoreType: PKCS12
             protocol: TLSv1.2
             mutualAuthentication: NONE

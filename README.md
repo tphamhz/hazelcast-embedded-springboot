@@ -33,7 +33,9 @@ Create TLS secret
 ```
 kubectl create secret generic hz-certificates \
   --from-file=hazelcast-keystore.p12=$WORK_DIR/deploy_k8s/certs/keystore.p12 \
-  --from-file=hazelcast-truststore.p12=$WORK_DIR/deploy_k8s/certs/truststore.p12
+  --from-file=hazelcast-truststore.p12=$WORK_DIR/deploy_k8s/certs/truststore.p12 \
+  --from-literal=hazelcast-keystore-pwd=hazelcast \
+  --from-literal=hazelcast-truststore-pwd=changeit
 ```
 
 `cd $WORK_DIR/deploy_k8s`
